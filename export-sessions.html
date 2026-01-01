@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Export Sessions</title>
+</head>
+<body>
+<script>
+// Endpoint API pour export des sessions complétées
+const apiData = {
+    export_date: new Date().toISOString(),
+    version: "1.0",
+    completed_sessions: [],
+    total_completed: 0
+};
+
+// Charger les données depuis localStorage
+try {
+    const completedSessions = localStorage.getItem('completedSessions');
+    const allSessions = localStorage.getItem('allSessions');
+
+    if (completedSessions) {
+        const data = JSON.parse(completedSessions);
+        apiData.completed_sessions = data.completed_sessions || [];
+        apiData.total_completed = data.total_completed || 0;
+    } else if (allSessions) {
+        const data = JSON.parse(allSessions);
+        // Filtrer seulement les sessions complétées
+        apiData.completed_sessions = (data.all_sessions || []).filter(s => s.completed);
+        apiData.total_completed = apiData.completed_sessions.length;
+    }
+} catch (error) {
+    console.error("Erreur lors de la lecture du localStorage:", error);
+}
+
+// Répondre en JSON pur
+document.open();
+document.write(JSON.stringify(apiData, null, 2));
+document.close();
+</script>
+</body>
+</html>

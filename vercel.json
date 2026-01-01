@@ -3,6 +3,10 @@
     {
       "source": "/api/sessions",
       "destination": "/api.html"
+    },
+    {
+      "source": "/api/firebase-sync",
+      "destination": "/api/firebase-sync.js"
     }
   ]
 }

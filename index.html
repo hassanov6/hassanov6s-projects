@@ -1556,30 +1556,54 @@ function exportToClipboard() {
         const choice = prompt(
             `Choisissez ce que vous voulez exporter:\n\n` +
             `1. Session COMPLÉTÉES seulement (${completedData.total_completed} sessions)\n` +
-            `2. TOUTES les sessions (${allData.total_sessions} sessions)\n\n` +
-            `Entrez 1 ou 2:`,
+            `2. TOUTES les sessions (${allData.total_sessions} sessions)\n` +
+            `3. Sauvegarder dans fichier (pour APK auto-sync)\n\n` +
+            `Entrez 1, 2 ou 3:`,
             "1"
         );
 
         let data;
         let message;
 
-        if (choice === "2") {
+        if (choice === "3") {
+            // Sauvegarder pour l'APK
+            data = completedData;
+            localStorage.setItem('last_export', JSON.stringify(data));
+
+            // Créer un lien de téléchargement
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cycling_sessions_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            message = `✅ ${data.total_completed} sessions sauvegardées !\n\nLe fichier a été téléchargé.\n\nEnvoyez ce fichier à votre téléphone et importez-le dans l'application.`;
+        } else if (choice === "2") {
             data = allData;
+            localStorage.setItem('last_export', JSON.stringify(data));
             message = `✅ ${data.total_sessions} sessions exportées !\n\nCollez-les dans votre application Android et choisissez "Importer TOUTES les sessions".`;
         } else {
             data = completedData;
+            localStorage.setItem('last_export', JSON.stringify(data));
             message = `✅ ${data.total_completed} sessions complétées exportées !\n\nCollez-les dans votre application Android et choisissez "Importer SEULEMENT les nouvelles sessions".`;
         }
 
         const jsonString = JSON.stringify(data, null, 2);
 
-        navigator.clipboard.writeText(jsonString).then(() => {
+        if (choice !== "3") {
+            navigator.clipboard.writeText(jsonString).then(() => {
+                alert(message);
+            }).catch(err => {
+                console.error('Erreur lors de la copie:', err);
+                alert("❌ Erreur lors de la copie: " + err.message);
+            });
+        } else {
             alert(message);
-        }).catch(err => {
-            console.error('Erreur lors de la copie:', err);
-            alert("❌ Erreur lors de la copie: " + err.message);
-        });
+        }
     } catch (error) {
         console.error('Erreur lors de l\'export:', error);
         alert("❌ Erreur lors de l'export: " + error.message);
@@ -1592,17 +1616,27 @@ function addExportButton() {
         const container = document.querySelector('.container');
         if (container && !document.getElementById('export-apk-btn')) {
             const buttonDiv = document.createElement('div');
-            buttonDiv.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 1000;';
+            buttonDiv.style.cssText = 'position: fixed; bottom: 80px; right: 20px; z-index: 1000;';
 
             const button = document.createElement('button');
             button.id = 'export-apk-btn';
             button.innerHTML = '📤 Export APK';
-            button.style.cssText = 'background: #4CAF50; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+            button.style.cssText = 'background: #4CAF50; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 10px;';
             button.onclick = exportToClipboard;
 
             buttonDiv.appendChild(button);
+
+            // Bouton de synchronisation Firebase
+            const syncButton = document.createElement('button');
+            syncButton.id = 'sync-firebase-btn';
+            syncButton.innerHTML = '☁️ Sync Firebase';
+            syncButton.style.cssText = 'background: #2196F3; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+            syncButton.onclick = syncToFirebase;
+
+            buttonDiv.appendChild(syncButton);
+
             document.body.appendChild(buttonDiv);
-            console.log("✅ Bouton d'export APK ajouté");
+            console.log("✅ Boutons d'export et synchronisation ajoutés");
         }
     }, 2000);
 }
@@ -1612,6 +1646,35 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', addExportButton);
 } else {
     addExportButton();
+}
+
+// Fonction de synchronisation avec Firebase
+async function syncToFirebase() {
+    try {
+        console.log("🚀 Démarrage de la synchronisation Firebase...");
+
+        // Importer dynamiquement les fonctions Firebase
+        const { syncWithFirebase } = await import('./js/firebase-config.js');
+
+        // Générer un ID de device unique
+        let deviceId = localStorage.getItem('cycling_device_id');
+        if (!deviceId) {
+            deviceId = 'device_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('cycling_device_id', deviceId);
+        }
+
+        // Synchroniser les données
+        const result = await syncWithFirebase(deviceId);
+
+        if (result.error) {
+            alert("❌ Erreur de synchronisation: " + result.error);
+        } else {
+            alert(`✅ Synchronisation réussie !\n\n${result.total_completed} session(s) envoyée(s) vers Firebase.\n\nUtilisez le bouton de synchronisation dans l'APK pour récupérer les données.`);
+        }
+    } catch (error) {
+        console.error("Erreur de synchronisation Firebase:", error);
+        alert("❌ Erreur: " + error.message);
+    }
 }
 </script>
 

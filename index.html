@@ -1490,6 +1490,53 @@ window.getApiExport = exportCompletedSessionsForApp;
 
 console.log("🎉 API pour APK chargée avec succès !");
 console.log("📖 Utilisez getApiExport() pour obtenir les données");
+
+// Fonction pour exporter et copier les données dans le presse-papier
+function exportToClipboard() {
+    try {
+        const data = exportCompletedSessionsForApp();
+        const jsonString = JSON.stringify(data, null, 2);
+
+        // Copier dans le presse-papier
+        navigator.clipboard.writeText(jsonString).then(() => {
+            alert(`✅ ${data.total_completed} sessions copiées dans le presse-papier !\n\nCollez-les dans votre application Android.`);
+        }).catch(err => {
+            console.error('Erreur lors de la copie:', err);
+            alert("❌ Erreur lors de la copie. Utilisez la console du navigateur.");
+        });
+    } catch (error) {
+        console.error('Erreur lors de l\'export:', error);
+        alert("❌ Erreur lors de l'export: " + error.message);
+    }
+}
+
+// Créer un bouton d'export sur la page
+function addExportButton() {
+    setTimeout(() => {
+        const container = document.querySelector('.container');
+        if (container && !document.getElementById('export-apk-btn')) {
+            const buttonDiv = document.createElement('div');
+            buttonDiv.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 1000;';
+
+            const button = document.createElement('button');
+            button.id = 'export-apk-btn';
+            button.innerHTML = '📤 Export APK';
+            button.style.cssText = 'background: #4CAF50; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+            button.onclick = exportToClipboard;
+
+            buttonDiv.appendChild(button);
+            document.body.appendChild(buttonDiv);
+            console.log("✅ Bouton d'export APK ajouté");
+        }
+    }, 2000);
+}
+
+// Ajouter le bouton au chargement
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', addExportButton);
+} else {
+    addExportButton();
+}
 </script>
 
 </body>

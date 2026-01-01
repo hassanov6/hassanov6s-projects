@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import de données</title>
+</head>
+<body>
+<div style="padding: 20px; font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+    <h1>📥 Import de données depuis site1-omega-five</h1>
+
+    <div id="instructions" style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Allez sur <a href="https://site1-omega-five.vercel.app/transfert.html" target="_blank">site1-omega-five.vercel.app/transfert.html</a></li>
+            <li>Cliquez sur "Exporter les données"</li>
+            <li>Copiez le JSON affiché</li>
+            <li>Collez-le ci-dessous</li>
+            <li>Cliquez sur "Importer les données"</li>
+        </ol>
+    </div>
+
+    <textarea id="importText" rows="10" placeholder="Collez les données JSON ici..." style="width: 100%; font-family: monospace; padding: 10px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px;"></textarea>
+
+    <div>
+        <button onclick="importData()" style="background: #4CAF50; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-right: 10px;">
+            📥 Importer les données
+        </button>
+        <button onclick="goToSite()" style="background: #2196F3; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold;">
+            🚴 Aller sur le site
+        </button>
+    </div>
+
+    <div id="result" style="margin-top: 20px; display: none;">
+        <h3 id="resultTitle"></h3>
+        <pre id="resultText" style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow: auto;"></pre>
+    </div>
+</div>
+
+<script>
+function importData() {
+    const importText = document.getElementById('importText').value;
+
+    if (!importText.trim()) {
+        alert("❌ Veuillez coller les données JSON !");
+        return;
+    }
+
+    try {
+        console.log("🚀 Import des données...");
+
+        const data = JSON.parse(importText);
+
+        // 1. Sauvegarder userProgress dans localStorage
+        if (data.user_progress && Object.keys(data.user_progress).length > 0) {
+            localStorage.setItem('userProgress', JSON.stringify(data.user_progress));
+            console.log("✅ userProgress importé:", Object.keys(data.user_progress).length, "sessions");
+        }
+
+        // 2. Sauvegarder trainingProgram dans localStorage
+        if (data.training_program) {
+            localStorage.setItem('trainingProgram', JSON.stringify(data.training_program));
+            console.log("✅ trainingProgram importé");
+        }
+
+        // 3. Sauvegarder completedSessions dans localStorage
+        if (data.completed_sessions && data.completed_sessions.length > 0) {
+            localStorage.setItem('completedSessions', JSON.stringify({
+                export_date: data.export_date,
+                version: data.version,
+                completed_sessions: data.completed_sessions,
+                total_completed: data.total_completed
+            }));
+            console.log("✅ completedSessions importé:", data.total_completed, "sessions complétées");
+        }
+
+        // Afficher le résultat
+        const resultDiv = document.getElementById('result');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultText = document.getElementById('resultText');
+
+        resultDiv.style.display = 'block';
+
+        let summary = `✅ Import réussi !\n\n`;
+        summary += `• Sessions complétées: ${data.total_completed || 0}\n`;
+        summary += `• Date de l'export: ${new Date(data.export_date).toLocaleString('fr-FR')}\n`;
+        summary += `• Source: ${data.source || 'Inconnue'}\n`;
+        summary += `\nCliquez sur "Aller sur le site" pour voir vos données.`;
+
+        resultTitle.textContent = summary;
+        resultText.textContent = JSON.stringify(data, null, 2);
+
+        alert(summary);
+    } catch (error) {
+        console.error("❌ Erreur lors de l'import:", error);
+        alert("❌ Erreur lors de l'import: " + error.message + "\n\nVérifiez que le JSON est valide.");
+    }
+}
+
+function goToSite() {
+    window.location.href = './index.html';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfert de données</title>
+</head>
+<body>
+<div style="padding: 20px; font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+    <h1>🔄 Transfert de données vers site1-project.vercel.app</h1>
+
+    <div id="instructions" style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Cliquez sur "📥 Exporter les données" pour exporter vos sessions</li>
+            <li>Copiez le JSON affiché</li>
+            <li>Allez sur https://site1-project.vercel.app/transfert.html</li>
+            <li>Collez les données et cliquez sur "Importer"</li>
+        </ol>
+    </div>
+
+    <button onclick="exportData()" style="background: #4CAF50; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold;">
+        📥 Exporter les données
+    </button>
+
+    <div id="result" style="margin-top: 20px; display: none;">
+        <h3>📤 Données exportées:</h3>
+        <p>Copiez ces données et allez sur <a href="https://site1-project.vercel.app/transfert.html" target="_blank">site1-project.vercel.app/transfert.html</a></p>
+        <textarea id="exportText" rows="10" style="width: 100%; font-family: monospace; padding: 10px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+        <button onclick="copyToClipboard()" style="background: #2196F3; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-top: 10px;">
+            📋 Copier dans le presse-papier
+        </button>
+    </div>
+</div>
+
+<script>
+function exportData() {
+    console.log("🚀 Export des données...");
+
+    const exportData = {
+        export_date: new Date().toISOString(),
+        version: "1.0",
+        source: "site1-omega-five",
+        user_progress: {},
+        training_program: null,
+        completed_sessions: []
+    };
+
+    // 1. Récupérer depuis localStorage
+    const savedProgress = localStorage.getItem('userProgress');
+    if (savedProgress) {
+        try {
+            exportData.user_progress = JSON.parse(savedProgress);
+            console.log("✅ userProgress trouvé dans localStorage");
+        } catch (e) {
+            console.error("Erreur parsing userProgress:", e);
+        }
+    }
+
+    const savedProgram = localStorage.getItem('trainingProgram');
+    if (savedProgram) {
+        try {
+            exportData.training_program = JSON.parse(savedProgram);
+            console.log("✅ trainingProgram trouvé dans localStorage");
+        } catch (e) {
+            console.error("Erreur parsing trainingProgram:", e);
+        }
+    }
+
+    const savedCompleted = localStorage.getItem('completedSessions');
+    if (savedCompleted) {
+        try {
+            const completed = JSON.parse(savedCompleted);
+            exportData.completed_sessions = completed.completed_sessions || [];
+            console.log("✅ completedSessions trouvé dans localStorage");
+        } catch (e) {
+            console.error("Erreur parsing completedSessions:", e);
+        }
+    }
+
+    // 2. Récupérer depuis variables globales
+    if (window.userProgress) {
+        exportData.user_progress = window.userProgress;
+        console.log("✅ userProgress trouvé dans window");
+    }
+
+    if (window.trainingProgram) {
+        exportData.training_program = window.trainingProgram;
+        console.log("✅ trainingProgram trouvé dans window");
+    }
+
+    // 3. Générer la liste des sessions complétées
+    if (exportData.user_progress && Object.keys(exportData.user_progress).length > 0) {
+        exportData.completed_sessions = [];
+
+        for (const date in exportData.user_progress) {
+            const progress = exportData.user_progress[date];
+            const session = exportData.training_program?.sessions?.[date];
+
+            if (progress && progress.completed) {
+                const zoneTimes = {
+                    z1: progress.zoneTimes?.[0] || 0,
+                    z2: progress.zoneTimes?.[1] || 0,
+                    z3: progress.zoneTimes?.[2] || 0,
+                    z4: progress.zoneTimes?.[3] || 0,
+                    z5: progress.zoneTimes?.[4] || 0
+                };
+
+                exportData.completed_sessions.push({
+                    date: date,
+                    session_type: session?.session_type || "Endurance",
+                    duration_minutes: session?.duration_minutes || 0,
+                    description: session?.description || "",
+                    target_zone: session?.target_zone || "Z1",
+                    completed: true,
+                    completed_at: progress.completedAt || new Date().toISOString(),
+                    zone_times: zoneTimes,
+                    notes: progress.notes || "",
+                    rating: progress.rating || null
+                });
+            }
+        }
+    }
+
+    exportData.total_completed = exportData.completed_sessions.length;
+
+    // Afficher le résultat
+    const resultDiv = document.getElementById('result');
+    const exportText = document.getElementById('exportText');
+
+    exportText.value = JSON.stringify(exportData, null, 2);
+    resultDiv.style.display = 'block';
+
+    alert(`✅ ${exportData.total_completed} sessions exportées !\n\nCopiez les données ci-dessous et allez sur site1-project.vercel.app/transfert.html`);
+}
+
+function copyToClipboard() {
+    const exportText = document.getElementById('exportText');
+    exportText.select();
+    document.execCommand('copy');
+    alert('✅ Données copiées dans le presse-papier !');
+}
+</script>
+</body>
+</html>

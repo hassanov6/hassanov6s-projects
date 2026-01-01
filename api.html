@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API de synchronisation</title>
+</head>
+<body>
+<script>
+// Endpoint API pour synchronisation APK
+const apiData = {
+    export_date: new Date().toISOString(),
+    version: "1.0",
+    completed_sessions: [],
+    total_completed: 0
+};
+
+// Charger les données depuis data.js
+const script = document.createElement('script');
+script.src = 'data.js';
+script.onload = function() {
+    // Essayer de charger les données complétées
+    if (window.trainingProgram && window.trainingProgram.sessions) {
+        const userProgress = window.userProgress || {};
+
+        for (const date in window.trainingProgram.sessions) {
+            const session = window.trainingProgram.sessions[date];
+            const completedData = userProgress[date];
+
+            if (completedData && completedData.completed) {
+                const zoneTimes = {
+                    z1: completedData.zoneTimes?.[0] || 0,
+                    z2: completedData.zoneTimes?.[1] || 0,
+                    z3: completedData.zoneTimes?.[2] || 0,
+                    z4: completedData.zoneTimes?.[3] || 0,
+                    z5: completedData.zoneTimes?.[4] || 0
+                };
+
+                const sessionData = {
+                    date: date,
+                    session_type: session.session_type || "Endurance",
+                    duration_minutes: session.duration_minutes || 0,
+                    completed_at: completedData.completedAt || new Date().toISOString(),
+                    zone_times: zoneTimes
+                };
+
+                apiData.completed_sessions.push(sessionData);
+            }
+        }
+
+        apiData.total_completed = apiData.completed_sessions.length;
+    }
+
+    // Répondre en JSON si demandé
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('format') && urlParams.get('format') === 'json') {
+        document.open();
+        document.write(JSON.stringify(apiData, null, 2));
+        document.close();
+    } else {
+        // Sinon, afficher une page HTML simple
+        document.body.innerHTML = `
+            <div style="padding: 20px; font-family: Arial, sans-serif;">
+                <h1>🚴‍♂️ API de synchronisation APK</h1>
+                <p><strong>Sessions complétées:</strong> ${apiData.total_completed}</p>
+                <p><strong>Date d'export:</strong> ${apiData.export_date}</p>
+                <p><a href="?format=json" style="padding: 10px 20px; background: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">📥 Télécharger JSON</a></p>
+                <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px; overflow: auto; max-height: 400px;">${JSON.stringify(apiData, null, 2)}</pre>
+            </div>
+        `;
+    }
+};
+document.head.appendChild(script);
+</script>
+</body>
+</html>

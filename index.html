@@ -1,295 +1,1429 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" dir="ltr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Programme d'entraînement annuel cycliste - Suivi complet</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-        }
-        .card {
-            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
-            border: none;
-            margin-bottom: 1.5rem;
-        }
-        .stats-card {
-            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            border-radius: 15px;
-        }
-        .page-title {
-            font-size: 2.5rem;
-            font-weight: bold;
-        }
-    </style>
+
+    <!-- Scripts externes - Optimisés -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Chart.js est maintenant disponible globalement
+        window.chartJSLoaded = true;
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" defer></script>
+
+    <!-- Bibliothèque FIT Parser -->
+    <script src="js/fit-parser.js"></script>
+
+    <!-- MapLibre - Chargement différé uniquement si nécessaire -->
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.0/dist/maplibre-gl.css" media="print" onload="this.media='all'">
+    <script>
+        // Charger MapLibre uniquement quand la carte est utilisée
+        window.loadMapLibre = function() {
+            if (!window.mapLibreLoaded) {
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/maplibre-gl@3.6.0/dist/maplibre-gl.js';
+                document.head.appendChild(script);
+                window.mapLibreLoaded = true;
+            }
+        };
+    </script>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <!-- Feuilles de style personnalisées -->
+    <link rel="stylesheet" href="css/body-styles.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
-    <!-- Header -->
-    <div class="header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="page-title">
-                        <i class="fas fa-bicycle"></i> Programme d'entraînement annuel cycliste
-                    </h1>
-                    <p class="lead">Suivi complet de votre préparation physique - Début le 1er septembre 2025</p>
-                </div>
-                <div class="col-md-4 text-right">
-                    <button class="btn btn-light btn-lg">
-                        <i class="fas fa-moon"></i> 🌙 Mode sombre
+    <script type="module" src="js/main.js"></script>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2 style="color: #4CAF50; text-align: center; margin-bottom: 25px;">
+                🚴‍♂️ Programme d'entraînement annuel
+            </h2>
+            <!-- Bouton mode sombre/clair -->
+<div style="text-align: center; margin-bottom: 20px;">
+  <button id="themeToggle" class="btn btn-sm" style="background: none; border: 1px solid var(--border-color);">
+    🌙 Mode sombre
+  </button>
+</div>
+            <p style="text-align: center; color: #666; font-size: 14px;">Début le 1er septembre 2025</p>
+
+            <!-- Boutons d'accès rapide -->
+            <div class="quick-access-panel">
+                <h3 style="color: #4CAF50; text-align: center; margin-top: 25px; margin-bottom: 15px;">
+                    🧭 Accès rapide
+                </h3>
+                <div class="quick-nav-buttons">
+                    <button class="quick-nav-btn" data-target="tab-dashboard-link">
+                        <i class="fas fa-calendar-alt"></i> Plan mensuel
+                    </button>
+                    <button class="quick-nav-btn" data-target="tab-progress-link">
+                        <i class="fas fa-chart-line"></i> Analyse Plan vs Réalisé
+                    </button>
+                    <button class="quick-nav-btn" data-target="tab-library-link">
+                        <i class="fas fa-route"></i> Mes parcours
+                    </button>
+                    <button class="quick-nav-btn" data-target="tab-imports-link">
+                        <i class="fas fa-file-import"></i> Activités importées
                     </button>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Navigation rapide -->
-    <div class="container mb-4">
-        <div class="card">
-            <div class="card-body">
-                <div class="nav nav-pills justify-content-center">
-                    <a class="nav-link active" href="#"><i class="fas fa-calendar-alt"></i> Plan mensuel</a>
-                    <a class="nav-link" href="#"><i class="fas fa-chart-line"></i> Analyse Plan vs Réalisé</a>
-                    <a class="nav-link" href="#"><i class="fas fa-route"></i> Mes parcours</a>
-                    <a class="nav-link" href="#"><i class="fas fa-download"></i> Activités importées</a>
+            <!-- Mini calendrier de navigation -->
+            <div class="mini-calendar-panel">
+                <h3 style="color: #4CAF50; text-align: center; margin-top: 25px; margin-bottom: 15px;">
+                    📆 Navigation par semaine
+                </h3>
+                <div id="miniCalendarWeeks" class="mini-calendar-weeks">
+                    <!-- Les semaines seront générées ici par JS -->
                 </div>
             </div>
-        </div>
-    </div>
+<button onclick="diagnoseDataPersistence()" class="btn btn-info btn-sm">
+    🔍 Diagnostiquer la persistance
+</button>
+            <!-- Phases d'entraînement -->
+            <div class="phase-card" onclick="togglePhase('phase1')" id="phaseCard1">
+                <div class="phase-header">
+                    <span class="phase-title">🏋️‍♂️ Phase Fondamentale 1 (Sept-Oct 2025)</span>
+                    <span class="phase-icon">▼</span>
+                </div>
+                <div class="phase-details" id="phase1Details">
+                    <p><strong>Objectif:</strong> Construire la base aérolique et améliorer la technique</p>
+                    <p><strong>Intensité:</strong> 65-75% de la FC max</p>
+                    <p><strong>Volume:</strong> 4-6 heures par semaine</p>
+                    <p><strong>Focus:</strong> Endurance fondamentale + exercices techniques</p>
+                </div>
+            </div>
 
-    <!-- Programme d'entraînement -->
-    <div class="container">
-        <h2 class="section-title mt-4 mb-3">
-            <i class="fas fa-dumbbell"></i> 🏋️‍♂️ Programme d'entraînement annuel
-        </h2>
+            <div class="phase-card" onclick="togglePhase('phase2')" id="phaseCard2">
+                <div class="phase-header">
+                    <span class="phase-title">🏋️‍♂️ Phase Fondamentale 2 (Nov-Déc 2025)</span>
+                    <span class="phase-icon">▼</span>
+                </div>
+                <div class="phase-details" id="phase2Details">
+                    <p><strong>Objectif:</strong> Développer la force et l'efficacité aérolique</p>
+                    <p><strong>Intensité:</strong> 70-85% de la FC max</p>
+                    <p><strong>Volume:</strong> 6-9 heures par semaine</p>
+                    <p><strong>Focus:</strong> Force + endurance modérée</p>
+                </div>
+            </div>
 
-        <div class="row">
-            <!-- Phase 1 -->
-            <div class="col-md-6 mb-3">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5>🏋️‍♂️ Phase Fondamentale 1 (Sept-Oct 2025)</h5>
+            <div class="phase-card" onclick="togglePhase('phase3')" id="phaseCard3">
+                <div class="phase-header">
+                    <span class="phase-title">🚴‍♂️ Phase de Construction (Jan-Fév 2026)</span>
+                    <span class="phase-icon">▼</span>
+                </div>
+                <div class="phase-details" id="phase3Details">
+                    <p><strong>Objectif:</strong> Développer la capacité à supporter des efforts élevés</p>
+                    <p><strong>Intensité:</strong> 80-95% de la FC max</p>
+                    <p><strong>Volume:</strong> 8-12 heures par semaine</p>
+                    <p><strong>Focus:</strong> Exercices au seuil lactique</p>
+                </div>
+            </div>
+
+            <div class="phase-card" onclick="togglePhase('phase4')" id="phaseCard4">
+                <div class="phase-header">
+                    <span class="phase-title">🏁 Phase de Pic (Mars-Avr 2026)</span>
+                    <span class="phase-icon">▼</span>
+                </div>
+                <div class="phase-details" id="phase4Details">
+                    <p><strong>Objectif:</strong> Atteindre la performance maximale pour les compétitions</p>
+                    <p><strong>Intensité:</strong> 85-100% de la FC max</p>
+                    <p><strong>Volume:</strong> 10-15 heures par semaine</p>
+                    <p><strong>Focus:</strong> Exercices VO2 max + Vitesse</p>
+                </div>
+            </div>
+
+            <div class="phase-card" onclick="togglePhase('phase5')" id="phaseCard5">
+                <div class="phase-header">
+                    <span class="phase-title">🏆 Phase de Compétition (Mai-Juin 2026)</span>
+                    <span class="phase-icon">▼</span>
+                </div>
+                <div class="phase-details" id="phase5Details">
+                    <p><strong>Objectif:</strong> Maintenir le pic et participer aux compétitions</p>
+                    <p><strong>Intensité:</strong> 90-100% de la FC max</p>
+                    <p><strong>Volume:</strong> 8-12 heures par semaine</p>
+                    <p><strong>Focus:</strong> Compétitions + exercices de vitesse</p>
+                </div>
+            </div>
+
+            <div class="phase-card" onclick="togglePhase('phase6')" id="phaseCard6">
+                <div class="phase-header">
+                    <span class="phase-title">🔄 Phase de Récupération (Juil-Août 2026)</span>
+                    <span class="phase-icon">▼</span>
+                </div>
+                <div class="phase-details" id="phase6Details">
+                    <p><strong>Objectif:</strong> Récupération mentale et physique</p>
+                    <p><strong>Intensité:</strong> 50-60% de la FC max</p>
+                    <p><strong>Volume:</strong> 3-5 heures par semaine</p>
+                    <p><strong>Focus:</strong> Activités alternatives + repos</p>
+                </div>
+            </div>
+
+            <!-- Statistiques rapides -->
+            <div style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.8); border-radius: 12px;">
+                <h3 style="color: #4CAF50; text-align: center;">📊 Statistiques</h3>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalHours">0</div>
+                    <div class="stat-label">Total heures d'entraînement</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="sessionsCompleted">0</div>
+                    <div class="stat-label">Sessions complétées</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="avgHeartRate">0</div>
+                    <div class="stat-label">FC moyenne</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="maxHeartRateZone">Z1</div>
+                    <div class="stat-label">Zone FC la plus élevée</div>
+                </div>
+            </div>
+
+            <!-- Indicateurs de performance avancés -->
+            <div style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.9); border-radius: 12px;">
+                <h3 style="color: #4CAF50; text-align: center;">📈 Indicateurs de Performance</h3>
+
+                <div class="performance-metrics">
+                    <div class="metric-row">
+                        <span>📊 CTL (Charge chronique):</span>
+                        <span id="ctlValue">0</span>
                     </div>
-                    <div class="card-body">
-                        <p><strong>Objectif:</strong> Construire la base aérolique et améliorer la technique</p>
-                        <p><strong>Intensité:</strong> 65-75% de la FC max</p>
-                        <p><strong>Volume:</strong> 4-6 heures par semaine</p>
-                        <p><strong>Focus:</strong> Endurance fondamentale + exercices techniques</p>
+                    <div class="metric-row">
+                        <span>⚡ ATL (Charge aiguë):</span>
+                        <span id="atlValue">0</span>
+                    </div>
+                    <div class="metric-row">
+                        <span>⚖️ TSB (Équilibre d'entraînement):</span>
+                        <span id="tsbValue">0</span>
+                    </div>
+                    <div class="metric-row">
+                        <span>🏆 Forme actuelle:</span>
+                        <span id="currentForm">Bonne</span>
                     </div>
                 </div>
-            </div>
 
-            <!-- Phase 2 -->
-            <div class="col-md-6 mb-3">
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <h5>🏋️‍♂️ Phase Fondamentale 2 (Nov-Déc 2025)</h5>
-                    </div>
-                    <div class="card-body">
-                        <p><strong>Objectif:</strong> Développer la force et l'efficacité aérolique</p>
-                        <p><strong>Intensité:</strong> 70-85% de la FC max</p>
-                        <p><strong>Volume:</strong> 6-9 heures par semaine</p>
-                        <p><strong>Focus:</strong> Force + endurance modérée</p>
-                    </div>
+                <div class="week-summary">
+                    <h4>📅 Résumé hebdomadaire</h4>
+                    <div>Heures: <span id="weeklyHours">0</span></div>
+                    <div>Sessions: <span id="weeklySessions">0</span></div>
+                    <div>TSS: <span id="weeklyTSS">0</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- Statistiques -->
-        <h2 class="section-title mt-5 mb-3">
-            <i class="fas fa-chart-bar"></i> 📊 Statistiques
-        </h2>
-        <div class="row">
-            <div class="col-md-3 mb-3">
-                <div class="stats-card card text-center p-3">
-                    <h3 class="display-4">0</h3>
-                    <p class="mb-0">Total heures d'entraînement</p>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="stats-card card text-center p-3">
-                    <h3 class="display-4">0</h3>
-                    <p class="mb-0">Sessions complétées</p>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="stats-card card text-center p-3">
-                    <h3 class="display-4">0</h3>
-                    <p class="mb-0">FC moyenne</p>
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="stats-card card text-center p-3">
-                    <h3 class="display-4">Z1</h3>
-                    <p class="mb-0">Zone FC la plus élevée</p>
-                </div>
-            </div>
-        </div>
+        <!-- Contenu principal -->
+        <div class="main-content">
+            <h1 style="text-align: center; color: #4CAF50; margin-bottom: 30px;">
+                🚴‍♂️ Journal d'entraînement annuel cycliste
+            </h1>
 
-        <!-- Section de synchronisation APK -->
-        <h2 class="section-title mt-5 mb-4">
-            <i class="fas fa-sync-alt"></i> 🔗 Synchronisation avec APK
-        </h2>
-        <div class="card">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-8">
-                        <h5>📡 API de synchronisation active</h5>
-                        <p class="text-muted">L'API permet à votre APK de synchroniser automatiquement les sessions terminées.</p>
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle"></i>
-                            L'API <code>getApiExport()</code> est disponible pour récupérer les sessions réalisées.
+            <!-- Onglets principaux -->
+            <div class="tab-wrapper mt-3">
+                <ul class="nav nav-pills flex-wrap" id="mainTabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="tab-dashboard-link" data-toggle="tab" href="#tab-dashboard" role="tab">
+                            <i class="fas fa-chart-pie mr-2"></i>Vue mensuelle
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="tab-load-link" data-toggle="tab" href="#tab-load" role="tab">
+                            <i class="fas fa-battery-three-quarters mr-2"></i>Charge d'entraînement
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="tab-progress-link" data-toggle="tab" href="#tab-progress" role="tab">
+                            <i class="fas fa-chart-line mr-2"></i>Analyse Plan vs Réalisé
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="tab-library-link" data-toggle="tab" href="#tab-library" role="tab">
+                            <i class="fas fa-route mr-2"></i>Mes parcours
+
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="tab-imports-link" data-toggle="tab" href="#tab-imports" role="tab">
+                            <i class="fas fa-file-import mr-2"></i>Activités importées
+                        </a>
+
+                    </li>
+
+                </ul>
+
+            </div>
+
+            <div class="tab-content" id="mainTabContent">
+                <!-- Onglet Vue mensuelle -->
+                <div class="tab-pane fade show active" id="tab-dashboard" role="tabpanel">
+                    <div style="text-align: center; margin-bottom: 25px;">
+                        <label for="monthSelector" style="font-weight: bold; color: #666; display: block; margin-bottom: 10px;">
+                            Choisissez le mois:
+                        </label>
+
+                        <!-- Boutons d'import/export -->
+                        <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+                            <button class="btn" onclick="document.getElementById('exerciseJsonInput').click()">
+                                📥 Importer exercices JSON
+                            </button>
+                            <button class="btn" onclick="exportData()">
+                                💾 Exporter données JSON
+                            </button>
+                            <button class="btn btn-danger" onclick="resetProgress()">
+                                ♻️ Réinitialiser les données
+                            </button>
+                        </div>
+
+                        <input id="exerciseJsonInput"
+                               type="file"
+                               accept=".json,application/json"
+                               style="display:none;"
+                               onchange="importExercisesFromJson(this.files[0])">
+
+                        <select id="monthSelector" class="month-selector" onchange="if(typeof updateMonthlyPlan === 'function') updateMonthlyPlan(); else console.warn('updateMonthlyPlan loading...');">
+                            <option value="2025-09">Septembre 2025</option>
+                            <option value="2025-10">Octobre 2025</option>
+                            <option value="2025-11">Novembre 2025</option>
+                            <option value="2025-12">Décembre 2025</option>
+                            <option value="2026-01">Janvier 2026</option>
+                            <option value="2026-02">Février 2026</option>
+                            <option value="2026-03">Mars 2026</option>
+                            <option value="2026-04">Avril 2026</option>
+                            <option value="2026-05">Mai 2026</option>
+                            <option value="2026-06">Juin 2026</option>
+                            <option value="2026-07">Juillet 2026</option>
+                            <option value="2026-08">Août 2026</option>
+                        </select>
+                    </div>
+
+                    <div id="monthlyPlanTable">
+                        <!-- Le tableau sera rempli automatiquement -->
+                    </div>
+
+                    <!-- Statistiques mensuelles détaillées -->
+                    <div class="monthly-stats-container">
+                        <h3 class="monthly-stats-title">📊 Statistiques mensuelles détaillées</h3>
+
+                        <div class="monthly-stats-grid">
+                            <!-- Distance totale parcourue -->
+                            <div class="monthly-stat-card">
+                                <div class="monthly-stat-icon">🚴‍♂️</div>
+                                <div class="monthly-stat-value" id="monthlyDistance">0 km</div>
+                                <div class="monthly-stat-label">Distance parcourue</div>
+                            </div>
+
+                            <!-- Vitesse moyenne -->
+                            <div class="monthly-stat-card">
+                                <div class="monthly-stat-icon">⚡</div>
+                                <div class="monthly-stat-value" id="avgSpeed">0 km/h</div>
+                                <div class="monthly-stat-label">Vitesse moyenne</div>
+                            </div>
+
+                            <!-- Calories brûlées -->
+                            <div class="monthly-stat-card">
+                                <div class="monthly-stat-icon">🔥</div>
+                                <div class="monthly-stat-value" id="caloriesBurned">0 kcal</div>
+                                <div class="monthly-stat-label">Calories brûlées</div>
+                            </div>
+
+                            <!-- Jours actifs vs repos -->
+                            <div class="monthly-stat-card">
+                                <div class="monthly-stat-icon">📅</div>
+                                <div class="monthly-stat-value" id="activeDays">0</div>
+                                <div class="monthly-stat-label">Jours actifs</div>
+                                <div class="days-comparison">
+                                    <div class="day-type">
+                                        <div class="day-value" id="activeDaysCount">0</div>
+                                        <div class="day-label">Actifs</div>
+                                    </div>
+                                    <div class="day-type">
+                                        <div class="day-value" id="restDaysCount">0</div>
+                                        <div class="day-label">Repos</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Volume d'exercices -->
+                            <div class="monthly-stat-card">
+                                <div class="monthly-stat-icon">💪</div>
+                                <div class="monthly-stat-value" id="totalExerciseTime">0h</div>
+                                <div class="monthly-stat-label">Volume d'exercices</div>
+                                <div class="exercise-volume">
+                                    <div class="exercise-type">
+                                        <div class="exercise-value" id="enduranceTime">0h</div>
+                                        <div class="exercise-label">Endurance</div>
+                                    </div>
+                                    <div class="exercise-type">
+                                        <div class="exercise-value" id="strengthTime">0h</div>
+                                        <div class="exercise-label">Force</div>
+                                    </div>
+                                    <div class="exercise-type">
+                                        <div class="exercise-value" id="techniqueTime">0h</div>
+                                        <div class="exercise-label">Technique</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Séances longues ou intenses -->
+                            <div class="monthly-stat-card">
+                                <div class="monthly-stat-icon">⏱️</div>
+                                <div class="monthly-stat-value" id="longIntenseSessions">0</div>
+                                <div class="monthly-stat-label">Séances longues/intenses</div>
+                                <div class="mini-chart-container">
+                                    <canvas id="sessionTypeChart"></canvas>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-4 text-center">
-                        <button class="btn btn-primary btn-lg" onclick="testApi()">
-                            <i class="fas fa-vial"></i> Tester l'API
-                        </button>
+                </div>
+
+                <!-- Onglet Charge d'Entraînement -->
+                <div class="tab-pane fade" id="tab-load" role="tabpanel">
+                    <div id="trainingLoadContent">
+                        <!-- Le contenu sera généré dynamiquement par JavaScript -->
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="sr-only">Chargement...</span>
+                            </div>
+                            <p class="mt-2">Chargement des données de charge d'entraînement...</p>
+                        </div>
                     </div>
                 </div>
-                <div id="api-test-result" class="mt-3" style="display: none;"></div>
-            </div>
-        </div>
 
-        <!-- Message de synchronisation -->
-        <div class="alert alert-info mt-4" role="alert">
-            <h4 class="alert-heading">
-                <i class="fas fa-info-circle"></i> Informations de synchronisation
-            </h4>
-            <p>Votre APK est maintenant configuré pour synchroniser automatiquement les sessions marquées comme "réalisé" depuis ce site.</p>
-            <hr>
-            <p class="mb-0">Utilisez l'APK pour synchroniser : <code>syncFromWebsite()</code> dans votre application.</p>
+                <!-- Onglet Analyse Plan vs Réalisé -->
+                <div class="tab-pane fade" id="tab-progress" role="tabpanel">
+                    <div class="chart-container">
+                        <h3 style="text-align: center; color: #4CAF50;">📈 Analyse de la progression d'entraînement</h3>
+
+                        <div class="chart-tabs">
+                            <div class="chart-tab active" onclick="showChart('hours', this)">Heures d'entraînement</div>
+                            <div class="chart-tab" onclick="showChart('heartRate', this)">Fréquence cardiaque</div>
+                            <div class="chart-tab" onclick="showChart('zones', this)">Zones d'entraînement</div>
+                            <div class="chart-tab" onclick="showChart('phase', this)">Analyse des phases</div>
+                            <div class="chart-tab" onclick="showChart('performance', this)">Indicateurs de performance</div>
+                            <div class="chart-tab" onclick="showChart('monthlyStats', this)">Statistiques mensuelles</div>
+                        </div>
+
+                        <div id="hoursChart" class="chart-content active">
+                            <canvas id="yearlyProgressChart" style="max-height: 400px;"></canvas>
+                        </div>
+
+                        <div id="heartRateChart" class="chart-content">
+                            <canvas id="heartRateChartCanvas" style="max-height: 400px;"></canvas>
+                        </div>
+
+                        <div id="zonesChart" class="chart-content">
+                            <canvas id="zonesChartCanvas" style="max-height: 400px;"></canvas>
+                        </div>
+
+                        <div id="phaseChart" class="chart-content">
+                            <canvas id="phaseChartCanvas" style="max-height: 400px;"></canvas>
+                        </div>
+
+                        <div id="performanceChart" class="chart-content">
+                            <canvas id="performanceChartCanvas" style="max-height: 400px;"></canvas>
+                        </div>
+
+                        <div id="monthlyStatsChart" class="chart-content">
+                            <canvas id="monthlyStatsChartCanvas" style="max-height: 400px;"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h3>Analyse comparative Plan vs. Réalisé</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Période d'analyse</label>
+                                        <div class="alert alert-info">
+                                          <i class="fas fa-info-circle"></i>
+                                          L'analyse utilise le mois sélectionné dans le calendrier ci-dessus
+                                      </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <canvas id="durationComparisonChart"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <canvas id="intensityComparisonChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-md-12">
+                                    <h4>Récapitulatif</h4>
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Métrique</th>
+                                                    <th>Plan</th>
+                                                    <th>Réalisé</th>
+                                                    <th>Écart</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="analysisRecap">
+                                                <!-- Rempli dynamiquement -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Onglet Mes parcours -->
+                <div class="tab-pane fade" id="tab-library" role="tabpanel">
+                    <div class="map-card">
+                        <!-- Section d'importation et de détails -->
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h3>📚 Ma bibliothèque de parcours optimisée</h3>
+                                <div class="btn-group">
+                                    <button class="btn btn-info" onclick="importStravaRoute()" title="Importer un parcours Strava">
+                                        <i class="fas fa-download"></i> 🚴 Importer Strava
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="importGPXFile()" title="Importer un fichier GPX/TCX">
+                                        <i class="fas fa-file-import"></i> 📁 Importer GPX/TCX
+                                    </button>
+                                    <button class="btn btn-success" onclick="saveCurrentRoute()">
+                                        <i class="fas fa-save"></i> 💾 Enregistrer le parcours actuel
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div id="routeDetailCard" class="card d-none">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                    <h4 id="routeDetailName" class="mb-0">Nom du parcours</h4>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button class="btn btn-info" onclick="showSelectedRoute()" title="Afficher sur la carte">
+                                                            <i class="fas fa-map"></i>
+                                                        </button>
+                                                        <button class="btn btn-warning" onclick="toggleFavorite(selectedRouteId)" title="Favori">
+                                                            <i class="fas fa-star" id="favoriteToggle"></i>
+                                                        </button>
+                                                        <button class="btn btn-danger" onclick="deleteRoute(selectedRouteId)" title="Supprimer">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row text-center mb-3">
+                                                    <div class="col-4">
+                                                        <div class="d-block h5 mb-0" id="routeDetailDistance">0</div>
+                                                        <small class="text-muted">km</small>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="d-block h5 mb-0" id="routeDetailDuration">0</div>
+                                                        <small class="text-muted">Durée</small>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="d-block h5 mb-0" id="routeDetailElevation">0</div>
+                                                        <small class="text-muted">m D+</small>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <span class="badge badge-info mr-2" id="routeDetailType">Type</span>
+                                                    <span class="badge badge-warning mr-2" id="routeDetailDifficulty">Difficulté</span>
+                                                    <span class="badge badge-secondary" id="routeDetailIntensity">Intensité</span>
+                                                </div>
+
+                                                <p class="mb-2"><strong>Date:</strong> <span id="routeDetailDate"></span></p>
+                                                <p class="mb-2"><strong>Vitesse moyenne:</strong> <span id="routeDetailAvgSpeed">0</span> km/h</p>
+                                                <p class="mb-2"><strong>Source:</strong> <span id="routeDetailSource"></span></p>
+                                                <p class="mb-2"><strong>Fichier:</strong> <span id="routeDetailFilename"></span></p>
+                                                <p class="mb-2" id="brytonLinkInfo" style="display: none;">
+                                                    <strong>Lien Bryton:</strong>
+                                                    <span id="brytonLinkDate"></span> -
+                                                    <button class="btn btn-sm btn-outline-danger ml-2" onclick="removeBrytonRouteFromLibrary(selectedRouteId)">
+                                                        <i class="fas fa-unlink"></i> Retirer de la bibliothèque
+                                                    </button>
+                                                </p>
+
+                                                <div class="mt-3">
+                                                    <p class="mb-1"><strong>Description:</strong></p>
+                                                    <p id="routeDetailDescription" class="text-muted pl-3">Pas de description</p>
+                                                </div>
+
+                                                <div id="routeTags" class="mt-2">
+                                                    <!-- Tags affichés dynamiquement -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="routeEmptyState" class="text-center p-5">
+                                            <i class="fas fa-route fa-3x text-muted mb-3"></i>
+                                            <p class="text-muted">Sélectionnez un parcours pour voir les détails</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div id="fitMap" style="height: 400px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section des filtres et contrôles -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h4>🔍 Filtres et recherche</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- Recherche -->
+                                    <div class="col-md-3">
+                                        <label class="form-label">Recherche</label>
+                                        <input type="search"
+                                               id="routeSearchInput"
+                                               class="form-control"
+                                               placeholder="Nom, description, tags..."
+                                               onkeyup="filterRoutes()">
+                                    </div>
+
+                                    <!-- Filtre par type -->
+                                    <div class="col-md-2">
+                                        <label class="form-label">Type</label>
+                                        <select class="form-control" id="filterType" onchange="filterRoutes()">
+                                            <option value="all">Tous les types</option>
+                                            <option value="sprint">Sprint</option>
+                                            <option value="vitesse">Vitesse</option>
+                                            <option value="endurance">Endurance</option>
+                                            <option value="collines">Collines</option>
+                                            <option value="longue_distance">Longue distance</option>
+                                            <option value="randonnee">Randonnée</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Filtre par difficulté -->
+                                    <div class="col-md-2">
+                                        <label class="form-label">Difficulté</label>
+                                        <select class="form-control" id="filterDifficulty" onchange="filterRoutes()">
+                                            <option value="all">Toutes</option>
+                                            <option value="facile">Facile</option>
+                                            <option value="moyen">Moyen</option>
+                                            <option value="difficile">Difficile</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Filtre par saison -->
+                                    <div class="col-md-2">
+                                        <label class="form-label">Saison</label>
+                                        <select class="form-control" id="filterSeason" onchange="filterRoutes()">
+                                            <option value="all">Toutes</option>
+                                            <option value="printemps">Printemps</option>
+                                            <option value="ete">Été</option>
+                                            <option value="automne">Automne</option>
+                                            <option value="hiver">Hiver</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Filtre par source -->
+                                    <div class="col-md-2">
+                                        <label class="form-label">Source</label>
+                                        <select class="form-control" id="filterSource" onchange="filterRoutes()">
+                                            <option value="all">Toutes les sources</option>
+                                            <option value="manual">Manuel</option>
+                                            <option value="bryton">Bryton</option>
+                                            <option value="import">Importé (GPX/TCX)</option>
+                                            <option value="garmin">Garmin</option>
+                                            <option value="strava">Strava</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Filtre favoris -->
+                                    <div class="col-md-1">
+                                        <label class="form-label">Favoris</label>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="checkbox" id="filterFavorites" onchange="filterRoutes()">
+                                            <label class="form-check-label" for="filterFavorites">
+                                                ⭐
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Distance -->
+                                    <div class="col-md-2">
+                                        <label class="form-label">Distance (km)</label>
+                                        <div class="form-row">
+                                            <input type="number" class="form-control form-control-sm" id="filterMinDistance"
+                                                   placeholder="Min" min="0" onchange="filterRoutes()">
+                                            <input type="number" class="form-control form-control-sm" id="filterMaxDistance"
+                                                   placeholder="Max" min="0" onchange="filterRoutes()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Contrôles de vue et export -->
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-outline-primary active" data-view-mode="list"
+                                                    onclick="changeViewMode('list')" title="Vue liste">
+                                                <i class="fas fa-list"></i> Liste
+                                            </button>
+                                            <button class="btn btn-outline-primary" data-view-mode="grid"
+                                                    onclick="changeViewMode('grid')" title="Vue grille">
+                                                <i class="fas fa-th"></i> Grille
+                                            </button>
+                                        </div>
+                                        <button class="btn btn-secondary ml-2" onclick="resetFilters()" title="Réinitialiser les filtres">
+                                            <i class="fas fa-undo"></i> Réinitialiser
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6 text-right">
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-success" onclick="exportRoutes('json')" title="Exporter en JSON">
+                                                <i class="fas fa-file-code"></i> JSON
+                                            </button>
+                                            <button class="btn btn-info" onclick="exportRoutes('gpx')" title="Exporter en GPX">
+                                                <i class="fas fa-map-marked-alt"></i> GPX
+                                            </button>
+                                            <button class="btn btn-warning" onclick="exportRoutes('csv')" title="Exporter en CSV">
+                                                <i class="fas fa-file-csv"></i> CSV
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Statistiques de la bibliothèque -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h4>📊 Statistiques de la bibliothèque</h4>
+                            </div>
+                            <div class="card-body">
+                                <div id="libraryStats">
+                                    <!-- Statistiques générées dynamiquement -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Liste des parcours -->
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4>🗂️ Liste des parcours</h4>
+                                <span class="badge badge-primary" id="routeCount">0 parcours</span>
+                            </div>
+                            <div class="card-body p-0">
+                                <div id="routesList" class="list-group">
+                                    <div class="list-group-item text-center text-muted p-4">
+                                        <i class="fas fa-route fa-3x mb-3"></i>
+                                        <h5>Aucun parcours enregistré</h5>
+                                        <p>Importez des fichiers FIT/GPX/TCX ou enregistrez manuellement des parcours</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 style="color:#4CAF50; text-align:center; margin-bottom:18px;">
+                        🗺️ Visualisation cartographique des activités
+                    </h2>
+
+                    <div style="text-align:center; margin-bottom:18px;">
+                        <label class="btn" style="cursor:pointer;">
+                            📁 Charger un fichier FIT/GPX/TCX
+                            <input id="mapFileInput" type="file" accept=".fit,.FIT,.gpx,.GPX,.tcx,.TCX"
+                                style="display:none;">
+                        </label>
+                        <small class="hint d-block mt-2">
+                            Sélectionnez un fichier Bryton/Garmin pour afficher le parcours et rafraîchir vos statistiques.
+                        </small>
+                    </div>
+
+                    <div id="fitMap"></div>
+
+                    <div id="mapStats" class="map-stats" style="display:none;">
+                        <div class="map-stat-card">
+                            <div class="map-stat-value" id="mapDistance">0 km</div>
+                            <div class="map-stat-label">Distance</div>
+                        </div>
+                        <div class="map-stat-card">
+                            <div class="map-stat-value" id="mapDuration">0 h</div>
+                            <div class="map-stat-label">Durée</div>
+                        </div>
+                        <div class="map-stat-card">
+                            <div class="map-stat-value" id="mapSpeed">0 km/h</div>
+                            <div class="map-stat-label">Vitesse moyenne</div>
+                        </div>
+                        <div class="map-stat-card">
+                            <div class="map-stat-value" id="mapHeartRate">—</div>
+                            <div class="map-stat-label">FC moyenne estimée</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Onglet Activités importées -->
+                <div class="tab-pane fade" id="tab-imports" role="tabpanel">
+                <div class="strava-layout mt-4">
+  <!-- Liste des activités -->
+  <aside class="strava-sidebar">
+    <h4>Activités</h4>
+    <ul id="stravaActivityList" class="strava-activity-list">
+      <!-- généré par JS -->
+    </ul>
+  </aside>
+
+  <!-- Contenu principal -->
+  <section class="strava-main">
+    <div class="strava-map-card">
+      <div id="stravaMap"></div>
+      <div class="strava-metrics">
+        <div class="metric">
+          <span class="metric-label">Distance</span>
+          <span id="stravaDistance" class="metric-value">0 km</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Durée</span>
+          <span id="stravaDuration" class="metric-value">0:00:00</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">D+ cumulé</span>
+          <span id="stravaElevation" class="metric-value">0 m</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">FC moy.</span>
+          <span id="stravaHrAvg" class="metric-value">—</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Puissance moy.</span>
+          <span id="stravaPowerAvg" class="metric-value">—</span>
+        </div>
+      </div>
+    </div>
+
+<div class="strava-charts">
+  <div class="strava-chart-wrapper">
+    <canvas id="stravaCombinedChart"></canvas>
+    <div id="stravaHoverTooltip" class="strava-hover-tooltip"></div>
+  </div>
+  <canvas id="stravaElevationChart"></canvas>
+</div>
+  </section>
+
+  <!-- Panneau résumé -->
+  <aside class="strava-summary">
+    <h4>Résumé</h4>
+    <dl>
+      <div>
+        <dt>Date</dt>
+        <dd id="stravaDate">—</dd>
+      </div>
+      <div>
+        <dt>Type</dt>
+        <dd id="stravaType">—</dd>
+      </div>
+      <div>
+        <dt>Conditions</dt>
+        <dd id="stravaWeather">—</dd>
+      </div>
+      <div>
+        <dt>Ressenti</dt>
+        <dd id="stravaFeel">—</dd>
+      </div>
+      <div>
+        <dt>Notes</dt>
+        <dd id="stravaNotes">Aucune note.</dd>
+      </div>
+    </dl>
+    <button class="btn btn-outline-primary btn-block mt-3" id="stravaExportBtn">
+      Exporter en PNG
+    </button>
+  </aside>
+</div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Activités Bryton importées</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Nom</th>
+                                            <th>Durée</th>
+                                            <th>Distance</th>
+                                            <th>FC moy.</th>
+                                            <th>Plan prévu</th>
+                                            <th>Écart</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="brytonActivitiesTable">
+                                        <!-- Rempli dynamiquement -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                            <div class="card-footer">
+            <button class="btn btn-primary" onclick="importWorkoutFile()">Importer activité FIT/GPX/TCX</button>
+            <button class="btn btn-success" onclick="importTrainingProgramJSON()">📋 Importer programme JSON</button>
+            <button class="btn btn-danger" onclick="resetAllData()">🗑️ Réinitialiser tout</button>
+            <button class="btn btn-info" onclick="renameAllUnnamedActivities()">📍 Nommer selon le lieu</button>
+            <button class="btn btn-warning" onclick="cleanDuplicateActivities()">🧹 Nettoyer les doublons</button>
         </div>
     </div>
 
-    <!-- API Script intégré -->
+                            <button class="btn btn-primary" onclick="importWorkoutFile()">Importer activité FIT/GPX/TCX</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fenêtre modale pour les détails de session -->
+    <div id="sessionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeSessionModal()">&times;</span>
+            <h2 id="modalTitle" style="color: #4CAF50; text-align: center;">Détails de la session d'entraînement</h2>
+
+            <div class="modal-form">
+                <label for="modalDate">📅 Date:</label>
+                <input type="date" id="modalDate" readonly>
+
+                <label for="modalSessionType">🏃‍♂️ Type de session:</label>
+                <select id="modalSessionType">
+                    <option value="Repos">Repos</option>
+                    <option value="Entraînement endurance">Entraînement endurance</option>
+                    <option value="Exercices vitesse">Exercices vitesse</option>
+                    <option value="Entraînement force">Entraînement force</option>
+                    <option value="Entraînement mixte">Entraînement mixte</option>
+                    <option value="Récupération active">Récupération active</option>
+                </select>
+
+                <label for="modalDuration">⏱️ Durée prévue (minutes):</label>
+                <input type="number" id="modalDuration" min="0" max="600">
+
+                <label for="modalActualDuration">⏱️ Durée réelle (minutes):</label>
+                <input type="number" id="modalActualDuration" min="0" max="600"
+                    placeholder="Durée réellement effectuée">
+
+                <label for="modalDistance">🚴‍♂️ Distance parcourue (km):</label>
+                <input type="number" id="modalDistance" min="0" max="500" step="0.1" placeholder="Distance parcourue">
+
+                <label for="modalHeartRate">❤️ Zone FC prévue:</label>
+                <input type="text" id="modalHeartRate" placeholder="Ex: 70-80% FCmax">
+
+                <label for="modalActualHeartRate">❤️ FC réelle:</label>
+                <input type="text" id="modalActualHeartRate" placeholder="FC réellement atteinte">
+
+                <label for="modalCadence">🔄 Cadence (tours/minute):</label>
+                <input type="text" id="modalCadence" placeholder="Ex: 85-95 rpm">
+
+                <label for="modalDifficulty">📊 Difficulté (1-10):</label>
+                <div class="slider-container">
+                    <input type="range" id="modalDifficulty" min="1" max="10" value="5">
+                    <span id="difficultyValue" class="slider-value">5</span>
+                </div>
+
+                <label for="modalFatigue">😓 Fatigue (1-10):</label>
+                <div class="slider-container">
+                    <input type="range" id="modalFatigue" min="1" max="10" value="5">
+                    <span id="fatigueValue" class="slider-value">5</span>
+                </div>
+
+                <label for="modalWeather">🌤️ Météo:</label>
+                <select id="modalWeather">
+                    <option value="Excellente">Excellente</option>
+                    <option value="Bonne">Bonne</option>
+                    <option value="Moyenne">Moyenne</option>
+                    <option value="Difficile">Difficile</option>
+                    <option value="Très mauvaise">Très mauvaise</option>
+                </select>
+
+                <label for="modalExercises">💪 Exercices détaillés:</label>
+                <textarea id="modalExercises" rows="4"
+                    placeholder="Écrivez les détails des exercices ici..."></textarea>
+
+                <div class="exercise-details">
+                    <h4>Exercices suggérés:</h4>
+                    <div id="exerciseSuggestions"></div>
+                </div>
+
+                <label for="modalNutritionPre">🍎 Nutrition avant l'entraînement:</label>
+                <input type="text" id="modalNutritionPre" placeholder="Ex: banane + beurre de cacahuètes">
+
+                <label for="modalNutritionPost">🥤 Nutrition après l'entraînement:</label>
+                <input type="text" id="modalNutritionPost" placeholder="Ex: shake protéiné + fruits">
+
+                <label for="modalNotes">📝 Notes:</label>
+                <textarea id="modalNotes" rows="3" placeholder="Ajoutez vos notes personnelles..."></textarea>
+
+                <div style="text-align: center; margin-top: 25px;">
+                    <button class="btn btn-save" onclick="saveSessionDetails()">💾 Sauvegarder</button>
+                    <button class="btn btn-delete" onclick="deleteSession()">🗑️ Supprimer</button>
+                    <button class="btn" onclick="closeSessionModal()">❌ Annuler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts personnalisés -->
+    
+
+    <!-- Données du programme d'entraînement -->
     <script>
-    // =====================================================================
-    // API POUR SYNCHRONISATION AVEC APK - Sessions terminées
-    // =====================================================================
-
-    function exportCompletedSessionsForApp() {
-        console.log("🚀 Démarrage de l'export pour APK...");
-
-        const completedSessions = [];
-
-        // Vérifier que les données existent
-        if (!window.trainingProgram || !window.trainingProgram.sessions) {
-            console.error("❌ trainingProgram non trouvé");
-            return {error: "Données d'entraînement non trouvées"};
-        }
-
-        console.log("📊 Recherche des sessions...");
-
-        // Parcourir toutes les sessions et sélectionner celles qui sont marquées comme complétées
-        for (const date in trainingProgram.sessions) {
-            const session = trainingProgram.sessions[date];
-            const completedData = window.userProgress ? window.userProgress[date] : null;
-
-            if (completedData && completedData.completed) {
-                console.log("✅ Session trouvée: " + date + " (" + (session.session_type || "Endurance") + ")");
-
-                // Extraire les temps de zone si disponibles
-                const zoneTimes = {
-                    z1: completedData.zoneTimes?.[0] || 0,
-                    z2: completedData.zoneTimes?.[1] || 0,
-                    z3: completedData.zoneTimes?.[2] || 0,
-                    z4: completedData.zoneTimes?.[3] || 0,
-                    z5: completedData.zoneTimes?.[4] || 0
-                };
-
-                const sessionData = {
-                    date: date,
-                    session_type: session.session_type || "Endurance",
-                    duration_minutes: session.duration_minutes || 0,
-                    completed_at: completedData.completedAt || new Date().toISOString(),
-                    zone_times: zoneTimes
-                };
-
-                completedSessions.push(sessionData);
-            }
-        }
-
-        console.log("🎯 Export de " + completedSessions.length + " sessions terminées");
-
-        // Créer le format compatible APK
-        const exportData = {
-            export_date: new Date().toISOString(),
-            version: "1.0",
-            completed_sessions: completedSessions,
-            total_completed: completedSessions.length
-        };
-
-        console.log("✅ Export terminé");
-        return exportData;
-    }
-
-    // Exposer globalement pour que l'APK puisse y accéder
-    window.getApiExport = exportCompletedSessionsForApp;
-
-    console.log("🎉 API pour APK chargée avec succès !");
-    console.log("📖 Utilisez getApiExport() pour obtenir les données");
-    </script>
-
-    <!-- Données d'entraînement -->
-    <script src="data.js"></script>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Custom script -->
-    <script>
-        // Test de l'API
-        function testApi() {
-            const resultDiv = document.getElementById('api-test-result');
-
-            if (typeof getApiExport === 'function') {
-                try {
-                    const data = getApiExport();
-                    resultDiv.innerHTML = `
-                        <div class="alert alert-success">
-                            <h5><i class="fas fa-check"></i> API fonctionnelle !</h5>
-                            <p>Réponse reçue :</p>
-                            <pre>${JSON.stringify(data, null, 2)}</pre>
-                        </div>
-                    `;
-                } catch (error) {
-                    resultDiv.innerHTML = `
-                        <div class="alert alert-warning">
-                            <h5><i class="fas fa-exclamation-triangle"></i> Erreur API</h5>
-                            <p>${error.message}</p>
-                        </div>
-                    `;
+        let trainingProgramData = {
+            "program_info": {
+                "name": "Programme d'entraînement annuel cycliste",
+                "start_date": "2025-09-01",
+                "end_date": "2026-08-31",
+                "cyclist_profile": {
+                    "age": 50,
+                    "level": "Intermédiaire à avancé",
+                    "max_heart_rate": 170,
+                    "rest_heart_rate": 65,
+                    "weight": 75
                 }
-            } else {
-                resultDiv.innerHTML = `
-                    <div class="alert alert-danger">
-                        <h5><i class="fas fa-times"></i> API non chargée</h5>
-                        <p>La fonction getApiExport() n'est pas disponible. Vérifiez que le script est bien chargé.</p>
-                    </div>
-                `;
+            },
+            "sessions": {
+                "2025-09-01": {
+                    "day": "Lundi",
+                    "session_type": "Repos",
+                    "duration_minutes": 0,
+                    "heart_rate_zone": "N/A",
+                    "cadence_rpm": "N/A",
+                    "intensity": "Repos",
+                    "exercises": "",
+                    "nutrition_pre": "Repas normal",
+                    "nutrition_post": "Repas normal",
+                    "notes": "Début du programme - repos complet",
+                    "detailed_exercises": []
+                },
+                "2025-09-02": {
+                    "day": "Mardi",
+                    "session_type": "Entraînement endurance",
+                    "duration_minutes": 60,
+                    "heart_rate_zone": "65-75% FCmax (111-128 bpm)",
+                    "cadence_rpm": "85-95",
+                    "intensity": "Modérée",
+                    "exercises": "Échauffement + endurance fondamentale + retour au calme",
+                    "nutrition_pre": "Banane + beurre de cacahuètes (60 min avant)",
+                    "nutrition_post": "Jus de fruits naturel",
+                    "notes": "Focus sur la construction de la base aérolique",
+                    "detailed_exercises": [
+                        { "name": "Échauffement", "duration": 10, "heart_rate": "60-65% FCmax (102-110 bpm)", "cadence": "90-100 rpm" },
+                        { "name": "Endurance fondamentale", "duration": 40, "heart_rate": "65-75% FCmax (110-127 bpm)", "cadence": "85-95 rpm" },
+                        { "name": "Retour au calme", "duration": 10, "heart_rate": "60-65% FCmax (102-110 bpm)", "cadence": "90-100 rpm" }
+                    ]
+                },
+                "2025-09-03": {
+                    "day": "Mercredi",
+                    "session_type": "Repos",
+                    "duration_minutes": 0,
+                    "heart_rate_zone": "N/A",
+                    "cadence_rpm": "N/A",
+                    "intensity": "Repos",
+                    "exercises": "",
+                    "nutrition_pre": "Repas normal",
+                    "nutrition_post": "Repas normal",
+                    "notes": "Jour de repos - marche légère 20 min possible",
+                    "detailed_exercises": []
+                },
+                "2025-09-04": {
+                    "day": "Jeudi",
+                    "session_type": "Exercices technique",
+                    "duration_minutes": 50,
+                    "heart_rate_zone": "65-70% FCmax (111-119 bpm)",
+                    "cadence_rpm": "90-110",
+                    "intensity": "Légère",
+                    "exercises": "Échauffement + exercices de cadence + retour au calme",
+                    "nutrition_pre": "Collation légère",
+                    "nutrition_post": "Boisson sportive",
+                    "notes": "Amélioration de la technique de pédalage",
+                    "detailed_exercises": [
+                        { "name": "Échauffement", "duration": 10, "heart_rate": "60-65% FCmax", "cadence": "90-100 rpm" },
+                        { "name": "Exercices de cadence", "duration": 30, "heart_rate": "65-70% FCmax", "cadence": "90-110 rpm", "details": "6 séries × 3 min avec 2 min de récupération" },
+                        { "name": "Retour au calme", "duration": 10, "heart_rate": "60-65% FCmax", "cadence": "90-100 rpm" }
+                    ]
+                },
+                "2025-09-05": {
+                    "day": "Vendredi",
+                    "session_type": "Repos",
+                    "duration_minutes": 0,
+                    "heart_rate_zone": "N/A",
+                    "cadence_rpm": "N/A",
+                    "intensity": "Repos",
+                    "exercises": "",
+                    "nutrition_pre": "Repas normal",
+                    "nutrition_post": "Repas normal",
+                    "notes": "Préparation pour l'entraînement du week-end",
+                    "detailed_exercises": []
+                },
+                "2025-09-06": {
+                    "day": "Samedi",
+                    "session_type": "Entraînement endurance long",
+                    "duration_minutes": 120,
+                    "heart_rate_zone": "65-75% FCmax (111-128 bpm)",
+                    "cadence_rpm": "85-95",
+                    "intensity": "Modérée",
+                    "exercises": "Échauffement + endurance fondamentale + accélérations légères + retour au calme",
+                    "nutrition_pre": "Flocons d'avoine + banane + miel (2h avant)",
+                    "nutrition_post": "Riz + poulet + légumes",
+                    "notes": "Premier long entraînement - maintenir un rythme constant",
+                    "detailed_exercises": [
+                        { "name": "Échauffement", "duration": 15, "heart_rate": "60-65% FCmax", "cadence": "90-100 rpm" },
+                        { "name": "Endurance fondamentale", "duration": 85, "heart_rate": "65-75% FCmax", "cadence": "85-95 rpm" },
+                        { "name": "Accélérations légères", "duration": 10, "heart_rate": "75-80% FCmax", "cadence": "95-105 rpm", "details": "4 accélérations × 30 sec avec 2 min de récupération" },
+                        { "name": "Retour au calme", "duration": 10, "heart_rate": "60-65% FCmax", "cadence": "90-100 rpm" }
+                    ]
+                },
+                "2025-09-07": {
+                    "day": "Dimanche",
+                    "session_type": "Récupération active",
+                    "duration_minutes": 45,
+                    "heart_rate_zone": "60-65% FCmax (102-111 bpm)",
+                    "cadence_rpm": "90-100",
+                    "intensity": "Légère",
+                    "exercises": "Roulage léger + étirements",
+                    "nutrition_pre": "Collation légère",
+                    "nutrition_post": "Boisson de récupération",
+                    "notes": "Entraînement pour éliminer l'acide lactique",
+                    "detailed_exercises": [
+                        { "name": "Roulage léger", "duration": 30, "heart_rate": "60-65% FCmax", "cadence": "90-100 rpm" },
+                        { "name": "Étirements", "duration": 15, "heart_rate": "N/A", "cadence": "N/A" }
+                    ]
+                },
+                // Octobre 2025 - Fin Phase Fondamentale 1
+                "2025-10-01": {
+                    "day": "Mercredi",
+                    "session_type": "Entraînement force",
+                    "duration_minutes": 75,
+                    "heart_rate_zone": "70-80% FCmax (119-136 bpm)",
+                    "cadence_rpm": "70-85",
+                    "intensity": "Élevée",
+                    "exercises": "Échauffement + exercices de force + retour au calme",
+                    "nutrition_pre": "Pommes de terre + œufs (90 min avant)",
+                    "nutrition_post": "Shake protéiné + banane",
+                    "notes": "Construction de la force musculaire",
+                    "detailed_exercises": [
+                        { "name": "Échauffement", "duration": 15, "heart_rate": "60-65% FCmax", "cadence": "90-100 rpm" },
+                        { "name": "Exercices de force", "duration": 45, "heart_rate": "70-80% FCmax", "cadence": "70-85 rpm", "details": "5 séries × 5 min avec 3 min de récupération" },
+                        { "name": "Retour au calme", "duration": 15, "heart_rate": "60-65% FCmax", "cadence": "90-100 rpm" }
+                    ]
+                },
+                "2025-10-04": {
+                    "day": "Samedi",
+                    "session_type": "Entraînement endurance long",
+                    "duration_minutes": 150,
+                    "heart_rate_zone": "65-75% FCmax (111-128 bpm)",
+                    "cadence_rpm": "85-95",
+                    "intensity": "Modérée",
+                    "exercises": "Échauffement + endurance fondamentale + accélérations + retour au calme",
+                    "nutrition_pre": "Pâtes + sauce (3h avant)",
+                    "nutrition_post": "Poulet + riz + légumes",
+                    "notes": "Augmentation progressive de la durée",
+                    "detailed_exercises": [
+                        { "name": "Échauffement", "duration": 15, "heart_rate": "60-65% FCmax", "cadence": "90-100 rpm" },
+                        { "name": "Endurance fondamentale", "duration": 110, "heart_rate": "65-75% FCmax", "cadence": "85-95 rpm" },
+                        { "name": "Accélérations", "duration": 10, "heart_rate": "75-85% FCmax", "cadence": "95-105 rpm", "details": "5 accélérations × 1 min avec 2 min de récupération" },
+                        { "name": "Retour au calme", "duration": 15, "heart_rate": "60-65% FCmax", "cadence": "90-100 rpm" }
+                    ]
+                },
+                // Novembre 2025 - Phase Fondamentale 2
+                "2025-11-01": {
+                    "day": "Samedi",
+                    "session_type": "Entraînement seuil lactique",
+                    "duration_minutes": 90,
+                    "heart_rate_zone": "80-85% FCmax (136-145 bpm)",
+                    "cadence_rpm": "85-95",
+                    "intensity": "Élevée",
+                    "exercises": "Échauffement + intervalles seuil + retour au calme",
+                    "nutrition_pre": "Flocons d'avoine + fruits (2h avant)",
+                    "nutrition_post": "Protéines + glucides",
+                    "notes": "Développement du seuil aérobie",
+                    "detailed_exercises": [
+                        { "name": "Échauffement", "duration": 20, "heart_rate": "60-70% FCmax", "cadence": "90-100 rpm" },
+                        { "name": "Intervalles seuil", "duration": 50, "heart_rate": "80-85% FCmax", "cadence": "85-95 rpm", "details": "5 intervalles × 5 min avec 3 min de récupération" },
+                        { "name": "Retour au calme", "duration": 20, "heart_rate": "60-65% FCmax", "cadence": "90-100 rpm" }
+                    ]
+                },
+                // Décembre 2025 - Fin Phase Fondamentale 2
+                "2025-12-05": {
+                    "day": "Mercredi",
+                    "session_type": "Entraînement VO2 max",
+                    "duration_minutes": 60,
+                    "heart_rate_zone": "90-95% FCmax (153-162 bpm)",
+                    "cadence_rpm": "95-105",
+                    "intensity": "Très élevée",
+                    "exercises": "Échauffement + intervalles VO2 max + retour au calme",
+                    "nutrition_pre": "Banane + miel (60 min avant)",
+                    "nutrition_post": "Boisson de récupération",
+                    "notes": "Développement de la capacité aérobie maximale",
+                    "detailed_exercises": [
+                        { "name": "Échauffement", "duration": 15, "heart_rate": "60-70% FCmax", "cadence": "90-100 rpm" },
+                        { "name": "Intervalles VO2 max", "duration": 30, "heart_rate": "90-95% FCmax", "cadence": "95-105 rpm", "details": "6 intervalles × 2 min avec 3 min de récupération" },
+                        { "name": "Retour au calme", "duration": 15, "heart_rate": "60-65% FCmax", "cadence": "90-100 rpm" }
+                    ]
+                },
+                // Janvier 2026 - Phase de Construction
+                "2026-01-03": {
+                    "day": "Samedi",
+                    "session_type": "Entraînement intensif",
+                    "duration_minutes": 180,
+                    "heart_rate_zone": "80-90% FCmax (136-153 bpm)",
+                    "cadence_rpm": "85-95",
+                    "intensity": "Élevée",
+                    "exercises": "Échauffement + endurance + intervalles seuil + retour au calme",
+                    "nutrition_pre": "Riz + poulet (3h avant)",
+                    "nutrition_post": "Protéines + glucides",
+                    "notes": "Développement de la capacité d'endurance",
+                    "detailed_exercises": [
+                        { "name": "Échauffement", "duration": 20, "heart_rate": "60-70% FCmax", "cadence": "90-100 rpm" },
+                        { "name": "Endurance", "duration": 90, "heart_rate": "70-80% FCmax", "cadence": "85-95 rpm" },
+                        { "name": "Intervalles seuil", "duration": 40, "heart_rate": "80-90% FCmax", "cadence": "85-95 rpm", "details": "4 intervalles × 8 min avec 4 min de récup" },
+                        { "name": "Retour au calme", "duration": 30, "heart_rate": "60-65% FCmax", "cadence": "90-100 rpm" }
+                    ]
+                },
+                // Février 2026 - Fin Phase de Construction
+                "2026-02-07": {
+                    "day": "Samedi",
+                    "session_type": "Entraînement course",
+                    "duration_minutes": 120,
+                    "heart_rate_zone": "85-95% FCmax (145-162 bpm)",
+                    "cadence_rpm": "90-100",
+                    "intensity": "Très élevée",
+                    "exercises": "Échauffement + simulation course + retour au calme",
+                    "nutrition_pre": "Pâtes + sauce (2.5h avant)",
+                    "nutrition_post": "Repas de récupération",
+                    "notes": "Simulation des conditions de course",
+                    "detailed_exercises": [
+                        { "name": "Échauffement", "duration": 20, "heart_rate": "60-70% FCmax", "cadence": "90-100 rpm" },
+                        { "name": "Simulation course", "duration": 80, "heart_rate": "85-95% FCmax", "cadence": "90-100 rpm", "details": "3 séries × 15 min allure course avec 5 min de récup" },
+                        { "name": "Retour au calme", "duration": 20, "heart_rate": "60-65% FCmax", "cadence": "90-100 rpm" }
+                    ]
+                },
+                // Mars 2026 - Phase de Pic
+                "2026-03-05": {
+                    "day": "Mercredi",
+                    "session_type": "Entraînement pic",
+                    "duration_minutes": 90,
+                    "heart_rate_zone": "90-100% FCmax (153-170 bpm)",
+                    "cadence_rpm": "95-110",
+                    "intensity": "Maximale",
+                    "exercises": "Échauffement + intervalles courts + retour au calme",
+                    "nutrition_pre": "Gel énergétique + eau (45 min avant)",
+                    "nutrition_post": "Boisson protéinée",
+                    "notes": "Développement de la vitesse maximale",
+                    "detailed_exercises": [
+                        { "name": "Échauffement", "duration": 20, "heart_rate": "60-70% FCmax", "cadence": "90-100 rpm" },
+                        { "name": "Intervalles courts", "duration": 50, "heart_rate": "90-100% FCmax", "cadence": "95-110 rpm", "details": "10 intervalles × 1 min avec 2 min de récupération" },
+                        { "name": "Retour au calme", "duration": 20, "heart_rate": "60-65% FCmax", "cadence": "90-100 rpm" }
+                    ]
+                },
+                // Avril 2026 - Fin Phase de Pic
+                "2026-04-02": {
+                    "day": "Samedi",
+                    "session_type": "Entraînement course long",
+                    "duration_minutes": 240,
+                    "heart_rate_zone": "85-95% FCmax (145-162 bpm)",
+                    "cadence_rpm": "90-100",
+                    "intensity": "Très élevée",
+                    "exercises": "Échauffement + course longue + retour au calme",
+                    "nutrition_pre": "Repas complet (4h avant)",
+                    "nutrition_post": "Repas de récupération",
+                    "notes": "Préparation pour les courses longues",
+                    "detailed_exercises": [
+                        { "name": "Échauffement", "duration": 30, "heart_rate": "60-70% FCmax", "cadence": "90-100 rpm" },
+                        { "name": "Course longue", "duration": 180, "heart_rate": "85-95% FCmax", "cadence": "90-100 rpm", "details": "Simulation course 180 min avec nutrition toutes les 45 min" },
+                        { "name": "Retour au calme", "duration": 30, "heart_rate": "60-65% FCmax", "cadence": "90-100 rpm" }
+                    ]
+                }
+            },
+            "heart_rate_zones": {
+                "zone_1": { "range": "50-60% FCmax (85-102 bpm)", "description": "Récupération active" },
+                "zone_2": { "range": "60-70% FCmax (102-119 bpm)", "description": "Endurance fondamentale" },
+                "zone_3": { "range": "70-80% FCmax (119-136 bpm)", "description": "Endurance aérobie" },
+                "zone_4": { "range": "80-90% FCmax (136-153 bpm)", "description": "Seuil lactique" },
+                "zone_5": { "range": "90-100% FCmax (153-170 bpm)", "description": "Capacité aérobie maximale" }
             }
-            resultDiv.style.display = 'block';
-        }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+   <!-- Scripts Firebase -->
+<script type="module" src="js/firebase-config.js"></script>
 
-        // Initialisation au chargement de la page
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚴‍♂️ Site cycliste chargé');
-            if (typeof getApiExport !== 'undefined') {
-                console.log('✅ API APK prête à l\'emploi');
+<!-- Panneau de localisation météo -->
+<div id="locationPanel" style="position: fixed; top: 20px; right: 20px; z-index: 1000; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: none; max-width: 350px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h5 style="margin: 0; color: #333;">📍 Localisation Météo</h5>
+        <button onclick="closeLocationPanel()" style="background: none; border: none; font-size: 18px; cursor: pointer;">×</button>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #555;">Latitude:</label>
+        <input type="number" id="latInput" step="0.000001" value="34.019698" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #555;">Longitude:</label>
+        <input type="number" id="lonInput" step="0.000001" value="-6.734345" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #555;">Nom (optionnel):</label>
+        <input type="text" id="nameInput" value="Rabat, Maroc" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+        <button onclick="setLocationFromInputs()" style="flex: 1; background: #007bff; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer;">
+            🎯 Définir
+        </button>
+        <button onclick="resetLocation()" style="flex: 1; background: #6c757d; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer;">
+            🔄 Réinitialiser
+        </button>
+    </div>
+</div>
+
+<!-- Bouton flottant pour ouvrir le panneau -->
+<button id="locationButton" onclick="openLocationPanel()" style="position: fixed; top: 20px; right: 20px; z-index: 999; background: #007bff; color: white; border: none; padding: 12px 16px; border-radius: 25px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-size: 16px; display: flex; align-items: center; gap: 8px;">
+    📍 Localisation
+</button>
+
+<!-- Input caché pour l'importation GPX/TCX -->
+<input type="file" id="gpxFileInput" accept=".gpx,.GPX,.tcx,.TCX" style="display: none;">
+
+<!-- Scripts de secours pour l'importation Strava -->
+<script>
+// Fonctions de secours si les fonctions principales ne se chargent pas
+window.importStravaRoute = function() {
+    console.log('🚴 importStravaRoute (secours) appelé');
+
+    const instructions = `
+🚴 COMMENT IMPORTER UN PARCOURS STRAVA :
+
+ÉTAPE 1 - Exporter depuis Strava :
+1. Connectez-vous à Strava.com sur votre ordinateur
+2. Allez dans "Mes activités" ou "Mes parcours"
+3. Cliquez sur l'activité/parcours à exporter
+4. Cliquez sur le bouton "Export GPX" (icône de téléchargement)
+5. Téléchargez le fichier .gpx
+
+ÉTAPE 2 - Importer ici :
+1. Cliquez sur "OK" ci-dessous
+2. Sélectionnez votre fichier .gpx téléchargé
+3. Le parcours sera automatiquement analysé et ajouté à votre bibliothèque !
+
+✅ Le parcours sera catégorisé automatiquement selon ses caractéristiques.
+    `;
+
+    try {
+        if (confirm(instructions)) {
+            console.log('✅ Utilisateur a confirmé, ouverture du sélecteur de fichiers');
+            const input = document.getElementById('gpxFileInput');
+            if (input) {
+                input.click();
+                console.log('✅ Sélecteur de fichiers trouvé et cliqué');
+            } else {
+                alert('Erreur: sélecteur de fichiers non disponible');
+            }
+        }
+    } catch (error) {
+        console.error('❌ Erreur dans importStravaRoute:', error);
+        alert('Erreur lors de l\'importation: ' + error.message);
+    }
+};
+
+window.importGPXFile = function() {
+    console.log('📁 importGPXFile (secours) appelé');
+
+    try {
+        const input = document.getElementById('gpxFileInput');
+        if (input) {
+            console.log('✅ Sélecteur de fichiers trouvé, ouverture...');
+            input.click();
+        } else {
+            alert('Erreur: sélecteur de fichiers non disponible');
+        }
+    } catch (error) {
+        console.error('❌ Erreur dans importGPXFile:', error);
+        alert('Erreur lors de l\'importation: ' + error.message);
+    }
+};
+
+// Initialiser l'écouteur d'événement pour le fichier
+document.addEventListener('DOMContentLoaded', function() {
+    const gpxInput = document.getElementById('gpxFileInput');
+    if (gpxInput) {
+        gpxInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                console.log('📁 Fichier sélectionné:', file.name);
+                alert('Fichier sélectionné: ' + file.name + '\n\nTraitement en cours...\n\nNote: Pour un traitement complet, veuillez rafraîchir la page si nécessaire.');
+
+                // Traitement simplifié
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        console.log('✅ Fichier lu avec succès');
+                        // Essayer de créer un parcours de base
+                        const basicRoute = {
+                            id: "route_" + Date.now(),
+                            name: file.name.replace(/\.[^/.]+$/, "") || "Parcours importé",
+                            description: "Importé depuis " + file.name,
+                            date: new Date().toISOString().split('T')[0],
+                            distance: 10, // valeur par défaut
+                            duration: 30,   // valeur par défaut
+                            elevation: 100,  // valeur par défaut
+                            coordinates: [],
+                            source: 'import',
+                            filename: file.name,
+                            isFavorite: false,
+                            createdAt: new Date().toISOString(),
+                            type: 'endurance',
+                            difficulty: 'moyen',
+                            intensity: 'moyen'
+                        };
+
+                        // Essayer de sauvegarder
+                        if (typeof savedRoutes !== 'undefined') {
+                            savedRoutes.push(basicRoute);
+                            localStorage.setItem('savedRoutes', JSON.stringify(savedRoutes));
+                            if (typeof updateRoutesList === 'function') {
+                                updateRoutesList();
+                            }
+                            alert('✅ "' + basicRoute.name + '" ajouté à votre bibliothèque !\n\n(Paramètres par défaut - vous pouvez les modifier)');
+                        } else {
+                            alert('Erreur: bibliothèque non disponible. Veuillez rafraîchir la page.');
+                        }
+                    } catch (error) {
+                        console.error('Erreur lors du traitement:', error);
+                        alert('Erreur lors du traitement du fichier: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
             }
         });
-    </script>
+    }
+});
+</script>
+
 </body>
+
+
 </html>

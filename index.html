@@ -1490,19 +1490,94 @@ window.getApiExport = exportCompletedSessionsForApp;
 
 console.log("🎉 API pour APK chargée avec succès !");
 console.log("📖 Utilisez getApiExport() pour obtenir les données");
+console.log("📖 Utilisez getAllSessions() pour obtenir TOUTES les sessions");
+
+// Nouvelle fonction pour exporter TOUTES les sessions (pas seulement les complétées)
+function getAllSessions() {
+    console.log("🚀 Démarrage de l'export de TOUTES les sessions...");
+
+    const allSessions = [];
+
+    if (!window.trainingProgram || !window.trainingProgram.sessions) {
+        console.error("❌ trainingProgram non trouvé");
+        return {error: "Données d'entraînement non trouvées"};
+    }
+
+    console.log("📊 Export de toutes les sessions...");
+
+    for (const date in window.trainingProgram.sessions) {
+        const session = window.trainingProgram.sessions[date];
+        const completedData = window.userProgress ? window.userProgress[date] : null;
+
+        const zoneTimes = {
+            z1: completedData?.zoneTimes?.[0] || 0,
+            z2: completedData?.zoneTimes?.[1] || 0,
+            z3: completedData?.zoneTimes?.[2] || 0,
+            z4: completedData?.zoneTimes?.[3] || 0,
+            z5: completedData?.zoneTimes?.[4] || 0
+        };
+
+        const sessionData = {
+            date: date,
+            session_type: session.session_type || "Endurance",
+            duration_minutes: session.duration_minutes || 0,
+            description: session.description || "",
+            target_zone: session.target_zone || "Z1",
+            completed: completedData?.completed || false,
+            completed_at: completedData?.completedAt || null,
+            zone_times: zoneTimes
+        };
+
+        allSessions.push(sessionData);
+    }
+
+    console.log("🎯 Export de " + allSessions.length + " sessions totales");
+
+    const exportData = {
+        export_date: new Date().toISOString(),
+        version: "1.0",
+        all_sessions: allSessions,
+        total_sessions: allSessions.length
+    };
+
+    console.log("✅ Export terminé");
+    return exportData;
+}
+
+window.getAllSessions = getAllSessions;
 
 // Fonction pour exporter et copier les données dans le presse-papier
 function exportToClipboard() {
     try {
-        const data = exportCompletedSessionsForApp();
+        const completedData = exportCompletedSessionsForApp();
+        const allData = getAllSessions();
+
+        const choice = prompt(
+            `Choisissez ce que vous voulez exporter:\n\n` +
+            `1. Session COMPLÉTÉES seulement (${completedData.total_completed} sessions)\n` +
+            `2. TOUTES les sessions (${allData.total_sessions} sessions)\n\n` +
+            `Entrez 1 ou 2:`,
+            "1"
+        );
+
+        let data;
+        let message;
+
+        if (choice === "2") {
+            data = allData;
+            message = `✅ ${data.total_sessions} sessions exportées !\n\nCollez-les dans votre application Android et choisissez "Importer TOUTES les sessions".`;
+        } else {
+            data = completedData;
+            message = `✅ ${data.total_completed} sessions complétées exportées !\n\nCollez-les dans votre application Android et choisissez "Importer SEULEMENT les nouvelles sessions".`;
+        }
+
         const jsonString = JSON.stringify(data, null, 2);
 
-        // Copier dans le presse-papier
         navigator.clipboard.writeText(jsonString).then(() => {
-            alert(`✅ ${data.total_completed} sessions copiées dans le presse-papier !\n\nCollez-les dans votre application Android.`);
+            alert(message);
         }).catch(err => {
             console.error('Erreur lors de la copie:', err);
-            alert("❌ Erreur lors de la copie. Utilisez la console du navigateur.");
+            alert("❌ Erreur lors de la copie: " + err.message);
         });
     } catch (error) {
         console.error('Erreur lors de l\'export:', error);

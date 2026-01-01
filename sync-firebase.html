@@ -1,0 +1,81 @@
+// Script pour mettre à jour firebase-data.json depuis Firebase
+// Ce script est exécuté par Vercel lors du build ou par une fonction serverless
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCSAyZZSqjun0C0fc4MZze4o3oy05oK6LY",
+  authDomain: "cycling-tracker-projet.firebaseapp.com",
+  databaseURL: "https://cycling-tracker-projet-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "cycling-tracker-projet",
+  storageBucket: "cycling-tracker-projet.firebasestorage.app",
+  messagingSenderId: "545589672511",
+  appId: "1:545589672511:web:8307e64f37b32a4199168a",
+  measurementId: "G-Q62FG5D7QK"
+};
+
+// API endpoint simple sans modules ES6
+if (typeof fetch !== 'undefined') {
+    // Cette API sera appelée par l'APK
+    document.addEventListener('DOMContentLoaded', async function() {
+        // Récupérer les données Firebase
+        const firebaseUrl = 'https://cycling-tracker-projet-default-rtdb.europe-west1.firebasedatabase.app/users.json';
+
+        try {
+            const response = await fetch(firebaseUrl);
+            const data = await response.json();
+
+            if (data && Object.keys(data).length > 0) {
+                // Récupérer le premier utilisateur
+                const firstUserKey = Object.keys(data)[0];
+                const userData = data[firstUserKey];
+
+                if (userData && userData.sessions) {
+                    const sessions = userData.sessions;
+                    const completedSessions = [];
+
+                    if (sessions.completed_sessions) {
+                        for (const session of sessions.completed_sessions) {
+                            const zoneTimes = {
+                                z1: session.zone_times?.z1 || 0,
+                                z2: session.zone_times?.z2 || 0,
+                                z3: session.zone_times?.z3 || 0,
+                                z4: session.zone_times?.z4 || 0,
+                                z5: session.zone_times?.z5 || 0
+                            };
+
+                            completedSessions.push({
+                                date: session.date,
+                                session_type: session.session_type || "Endurance",
+                                duration_minutes: session.duration_minutes || 0,
+                                completed_at: session.completed_at || new Date().toISOString(),
+                                zone_times: zoneTimes
+                            });
+                        }
+                    }
+
+                    const exportData = {
+                        export_date: new Date().toISOString(),
+                        version: "1.0",
+                        completed_sessions: completedSessions,
+                        total_completed: completedSessions.length
+                    };
+
+                    // Afficher le JSON sur la page
+                    document.body.innerHTML = `
+                        <div style="padding: 20px; font-family: monospace; white-space: pre-wrap;">
+                            ${JSON.stringify(exportData, null, 2)}
+                        </div>
+                    `;
+                }
+            }
+        } catch (error) {
+            console.error("Erreur:", error);
+            document.body.innerHTML = JSON.stringify({
+                error: error.message,
+                export_date: new Date().toISOString(),
+                version: "1.0",
+                completed_sessions: [],
+                total_completed: 0
+            }, null, 2);
+        }
+    });
+}

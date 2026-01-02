@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Firebase</title>
+</head>
+<body>
+    <h1>Test de connexion Firebase</h1>
+    <div id="status">En attente...</div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, get, onValue, push, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // Configuration Firebase
+        const firebaseConfig = {
+          apiKey: "AIzaSyCSAyZZSqjun0C0fc4MZze4o3oy05oK6LY",
+          authDomain: "cycling-tracker-projet.firebaseapp.com",
+          databaseURL: "https://cycling-tracker-projet-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "cycling-tracker-projet",
+          storageBucket: "cycling-tracker-projet.firebasestorage.app",
+          messagingSenderId: "545589672511",
+          appId: "1:545589672511:web:8307e64f37b32a4199168a",
+          measurementId: "G-Q62FG5D7QK"
+        };
+
+        try {
+            // Initialisation
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const db = getDatabase(app);
+
+            document.getElementById('status').innerHTML = "✅ Firebase initialisée";
+
+            // Test d'authentification
+            signInAnonymously(auth)
+                .then((userCredential) => {
+                    console.log("✅ Authentification réussie:", userCredential.user.uid);
+                    document.getElementById('status').innerHTML += "<br>✅ Authentification réussie: " + userCredential.user.uid;
+
+                    // Test d'écriture
+                    const testRef = ref(db, 'test/' + Date.now());
+                    return set(testRef, { message: "Test réussi", timestamp: Date.now() });
+                })
+                .then(() => {
+                    document.getElementById('status').innerHTML += "<br>✅ Écriture réussie";
+                })
+                .catch((error) => {
+                    console.error("❌ Erreur Firebase:", error);
+                    document.getElementById('status').innerHTML += "<br>❌ Erreur: " + error.message;
+                });
+
+        } catch (error) {
+            console.error("❌ Erreur d'initialisation:", error);
+            document.getElementById('status').innerHTML = "❌ Erreur d'initialisation: " + error.message;
+        }
+    </script>
+</body>
+</html>
